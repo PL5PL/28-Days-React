@@ -4,15 +4,8 @@ import './App.css';
 
 const COUNTRIES_ENDPOINT = 'https://openholidaysapi.org/Countries';
 
-async function countryFetcher(COUNTRIES_ENDPOINT) {
-  const response = await fetch(COUNTRIES_ENDPOINT);
-  const json = await response.json();
-
-  return json;
-}
-
-async function holidayFetcher(HOLIDAYS_ENDPOINT) {
-  const response = await fetch(HOLIDAYS_ENDPOINT);
+async function fetcher(endpoint) {
+  const response = await fetch(endpoint);
   const json = await response.json();
 
   return json;
@@ -23,14 +16,13 @@ function App() {
   const [country, setCountry] = React.useState('NL');
 
   // Use the API to get list of countries.
-  const { data, error } = useSWR(COUNTRIES_ENDPOINT, countryFetcher);
+  const { data, error } = useSWR(COUNTRIES_ENDPOINT, fetcher);
 
-  console.log(data);
   const { data: holidayData, error: errorData } = useSWR(
     country
       ? `https://openholidaysapi.org/PublicHolidays?countryIsoCode=${country}&validFrom=2026-01-01&validTo=2026-12-31`
       : null,
-    holidayFetcher
+    fetcher
   );
 
   // "Safety Gate" per Gemini:

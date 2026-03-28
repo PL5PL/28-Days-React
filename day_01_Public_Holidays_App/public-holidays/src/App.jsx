@@ -15,17 +15,21 @@ function App() {
   // State management for country for selector.
   const [country, setCountry] = React.useState('NL');
 
+  // Holiday List Endpoint, either null if country hasn't been selected yet, or swap it out with the full API endpoint
+  const HOLIDAYLIST_ENDPOINT = country
+    ? `https://openholidaysapi.org/PublicHolidays?countryIsoCode=${country}&validFrom=2026-01-01&validTo=2026-12-31`
+    : null;
+
   // Use the API to get list of countries.
   const { data, error } = useSWR(COUNTRIES_ENDPOINT, fetcher);
 
   const { data: holidayData, error: errorData } = useSWR(
-    country
-      ? `https://openholidaysapi.org/PublicHolidays?countryIsoCode=${country}&validFrom=2026-01-01&validTo=2026-12-31`
-      : null,
+    HOLIDAYLIST_ENDPOINT,
     fetcher
   );
 
   // "Safety Gate" per Gemini:
+  // Just some alerts/feedback to user.
   if (error) return <div>Failed to load </div>;
   if (!data) return <div>Loading...</div>;
 
@@ -45,42 +49,66 @@ function App() {
       })
     : [];
 
-  console.log(cleanHolidayData);
-
   return (
     <>
-      <form>
-        <fieldset>
-          <legend>Select Country: </legend>
-          <label htmlFor="country">Country:</label>
-          <select
-            required
-            id="country"
-            name="country"
-            value={country}
-            onChange={(event) => {
-              setCountry(event.target.value);
-            }}
-          >
-            <option value="">-Select Country-</option>
-            <optgroup label="Countries">
-              {countries.map(([id, label]) => (
-                <option key={id} value={id}>
-                  {label}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-        </fieldset>
-      </form>
-      <ol>
-        {cleanHolidayData.map(({ date, name }) => (
-          <li key={date}>
-            {date} {name}
-          </li>
-        ))}
-      </ol>
+      <SelectorComponent
+        legend="Select Country:"
+        id="country"
+        name="country"
+        countries={countries}
+        country={country}
+        setCountry={setCountry}
+      />
+      <ListComponent holidayList={cleanHolidayData} />
     </>
+  );
+}
+
+function ListComponent({ holidayList }) {
+  return (
+    <ol>
+      {holidayList.map(({ date, name }) => (
+        <li key={date}>
+          {date} {name}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function SelectorComponent({
+  legend,
+  id,
+  name,
+  country,
+  setCountry,
+  countries,
+}) {
+  return (
+    <form>
+      <fieldset>
+        <legend>{legend} </legend>
+        <label htmlFor="country">Country:</label>
+        <select
+          required
+          id={id}
+          name={name}
+          value={country}
+          onChange={(event) => {
+            setCountry(event.target.value);
+          }}
+        >
+          <option value="">-Select Country-</option>
+          <optgroup label="Countries">
+            {countries.map(([id, label]) => (
+              <option key={id} value={id}>
+                {label}
+              </option>
+            ))}
+          </optgroup>
+        </select>
+      </fieldset>
+    </form>
   );
 }
 

@@ -20,7 +20,7 @@ const TodoList = () => {
           };
         }
         return todo;
-      })
+      }),
     );
   };
   return (
